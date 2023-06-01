@@ -7,7 +7,7 @@ import org.bukkit.plugin.java.JavaPlugin
 
 class EFCAmmoSort : JavaPlugin() {
     override fun onEnable() {
-        getCommand("as")?.setExecutor(AmmoCommand)
+        getCommand("ammosort")?.setExecutor(AmmoCommand)
     }
 
     override fun onDisable() {
