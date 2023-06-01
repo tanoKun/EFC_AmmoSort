@@ -17,7 +17,6 @@ class EFCAmmoSort : JavaPlugin() {
 fun deleteShulkerFIR(list: List<ItemStack>) {
 
     for (mono in list) {
-        if (mono == null) continue
         if (mono.type == Material.AIR) continue
 
         val meta = mono.itemMeta!!
