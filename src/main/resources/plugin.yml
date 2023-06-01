@@ -1,0 +1,9 @@
+name: EFCAmmoSort
+version: '${project.version}'
+main: com.github.tanokun.efcammosort.EFCAmmoSort
+api-version: 1.19
+authors: [ tanoKun ]
+
+commands:
+  ammosort:
+    description: 手に持っているアモケースの中身をソートします
