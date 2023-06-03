@@ -29,52 +29,57 @@ object AmmoCommand: CommandExecutor {
             return false
         }
 
-        val meta = (sender.inventory.itemInMainHand.itemMeta as BlockStateMeta)
-        val shulker = meta.blockState as ShulkerBox
 
-        val copy = HashMap<Ammo, ItemStack>()
-
-        val items = shulker.inventory.filterNotNull().map {
-            val name = it.itemMeta.displayName
-                .replace("§e", "A_")
-                .replace(".", "_")
-                .replace("x", "X")
-                .replace(" ", "_")
-                .replace("-", "_")
-                .uppercase()
-
-            val ammo = ammo[name] ?: Ammo("null", 0, 0)
-            copy[ammo] = it
-
-            return@map Pair(ammo, it.amount)
-        }
-
-        val putItems = HashMap<Ammo, Int>()
-
-        items.forEach {
-            putItems[it.first] = (putItems[it.first] ?: 0) + it.second
-        }
-
-        val sortedItems = ArrayList<ItemStack>()
-
-        putItems
-            .toSortedMap { o1, o2 -> return@toSortedMap if (o1.handle < o2.handle) -1 else 1 }
-            .forEach { en ->
-                val stack = en.value / en.key.max
-                val fraction = en.value % en.key.max
-                for (i in 1..stack)
-                    sortedItems.add(copy.getOrDefault(en.key, ItemStack(Material.AIR)).clone().apply { amount = en.key.max })
-                if (fraction != 0) sortedItems.add(copy.getOrDefault(en.key, ItemStack(Material.AIR)).clone().apply { amount = fraction })
-            }
-
-        shulker.inventory.clear()
-        deleteShulkerFIR(sortedItems)
-        sortedItems.forEachIndexed { index, ammo -> shulker.inventory.setItem(index, ammo) }
-        meta.blockState = shulker
-        sender.inventory.itemInMainHand.itemMeta = meta
+        sort(sender)
 
         sender.sendMessage("ソートが完了しました")
 
         return false
     }
+}
+
+fun sort(player: Player) {
+    val meta = (player.inventory.itemInMainHand.itemMeta as BlockStateMeta)
+    val shulker = meta.blockState as ShulkerBox
+
+    val copy = HashMap<Ammo, ItemStack>()
+
+    val items = shulker.inventory.filterNotNull().map {
+        val name = it.itemMeta.displayName
+            .replace("§e", "A_")
+            .replace(".", "_")
+            .replace("x", "X")
+            .replace(" ", "_")
+            .replace("-", "_")
+            .uppercase()
+
+        val ammo = ammo[name] ?: Ammo("null", 0, 0)
+        copy[ammo] = it
+
+        return@map Pair(ammo, it.amount)
+    }
+
+    val putItems = HashMap<Ammo, Int>()
+
+    items.forEach {
+        putItems[it.first] = (putItems[it.first] ?: 0) + it.second
+    }
+
+    val sortedItems = ArrayList<ItemStack>()
+
+    putItems
+        .toSortedMap { o1, o2 -> return@toSortedMap if (o1.handle < o2.handle) -1 else 1 }
+        .forEach { en ->
+            val stack = en.value / en.key.max
+            val fraction = en.value % en.key.max
+            for (i in 1..stack)
+                sortedItems.add(copy.getOrDefault(en.key, ItemStack(Material.AIR)).clone().apply { amount = en.key.max })
+            if (fraction != 0) sortedItems.add(copy.getOrDefault(en.key, ItemStack(Material.AIR)).clone().apply { amount = fraction })
+        }
+
+    shulker.inventory.clear()
+    deleteShulkerFIR(sortedItems)
+    sortedItems.forEachIndexed { index, ammo -> shulker.inventory.setItem(index, ammo) }
+    meta.blockState = shulker
+    player.inventory.itemInMainHand.itemMeta = meta
 }
