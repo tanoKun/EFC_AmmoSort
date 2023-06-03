@@ -1,6 +1,7 @@
 package com.github.tanokun.efcammosort.command
 
-import com.github.tanokun.efcammosort.AmmoType
+import com.github.tanokun.efcammosort.Ammo
+import com.github.tanokun.efcammosort.ammo
 import com.github.tanokun.efcammosort.deleteShulkerFIR
 import org.bukkit.Material
 import org.bukkit.block.ShulkerBox
@@ -31,7 +32,7 @@ object AmmoCommand: CommandExecutor {
         val meta = (sender.inventory.itemInMainHand.itemMeta as BlockStateMeta)
         val shulker = meta.blockState as ShulkerBox
 
-        val copy = HashMap<AmmoType, ItemStack>()
+        val copy = HashMap<Ammo, ItemStack>()
 
         val items = shulker.inventory.filterNotNull().map {
             val name = it.itemMeta.displayName
@@ -42,13 +43,13 @@ object AmmoCommand: CommandExecutor {
                 .replace("-", "_")
                 .uppercase()
 
-            val ammoType = AmmoType.valueOf(name)
-            copy[ammoType] = it
+            val ammo = ammo[name] ?: Ammo("null", 0, 0)
+            copy[ammo] = it
 
-            return@map Pair(ammoType, it.amount)
+            return@map Pair(ammo, it.amount)
         }
 
-        val putItems = HashMap<AmmoType, Int>()
+        val putItems = HashMap<Ammo, Int>()
 
         items.forEach {
             putItems[it.first] = (putItems[it.first] ?: 0) + it.second
@@ -57,12 +58,12 @@ object AmmoCommand: CommandExecutor {
         val sortedItems = ArrayList<ItemStack>()
 
         putItems
-            .toSortedMap { o1, o2 -> return@toSortedMap if (o1.han < o2.han) -1 else 1 }
+            .toSortedMap { o1, o2 -> return@toSortedMap if (o1.handle < o2.handle) -1 else 1 }
             .forEach { en ->
-                val stack = en.value / en.key.byMaterial.max
-                val fraction = en.value % en.key.byMaterial.max
+                val stack = en.value / en.key.max
+                val fraction = en.value % en.key.max
                 for (i in 1..stack)
-                    sortedItems.add(copy.getOrDefault(en.key, ItemStack(Material.AIR)).clone().apply { amount = en.key.byMaterial.max })
+                    sortedItems.add(copy.getOrDefault(en.key, ItemStack(Material.AIR)).clone().apply { amount = en.key.max })
                 if (fraction != 0) sortedItems.add(copy.getOrDefault(en.key, ItemStack(Material.AIR)).clone().apply { amount = fraction })
             }
 
@@ -72,34 +73,7 @@ object AmmoCommand: CommandExecutor {
         meta.blockState = shulker
         sender.inventory.itemInMainHand.itemMeta = meta
 
-        /**
-         *     val items = arrayListOf(
-        Pair("A_5_56X45M_M995", 10),
-        Pair("A_5_7X28M_SS190", 40),
-        Pair("A_45_ACP_MATCH_FMJ", 20),
-        Pair("A_45_ACP_AP", 20),
-        Pair("A_45_ACP_AP", 40),
-        Pair("A_5_45X39M_PPBS", 40)
-        )
-
-        val putItems = HashMap<AmmoType, Int>()
-
-        items.forEach {
-        putItems[AmmoType.valueOf(it.first)] = (putItems[AmmoType.valueOf(it.first)] ?: 0) + it.second
-        }
-
-        val sortedItems = ArrayList<Pair<AmmoType, Int>>()
-
-        putItems
-        .toSortedMap { o1, o2 -> return@toSortedMap if (o1.han < o2.han) -1 else 1 }
-        .forEach { en ->
-        val stack = en.value / en.key.byMaterial.max
-        val fraction = en.value % en.key.byMaterial.max
-        for (i in 1..stack)
-        sortedItems.add(Pair(en.key, en.key.byMaterial.max))
-        if (fraction != 0) sortedItems.add(Pair(en.key, fraction))
-        }
-         */
+        sender.sendMessage("ソートが完了しました")
 
         return false
     }

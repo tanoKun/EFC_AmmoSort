@@ -2,12 +2,25 @@ package com.github.tanokun.efcammosort
 
 import com.github.tanokun.efcammosort.command.AmmoCommand
 import org.bukkit.Material
+import org.bukkit.configuration.file.FileConfiguration
 import org.bukkit.inventory.ItemStack
 import org.bukkit.plugin.java.JavaPlugin
+
+lateinit var ammoConfig: FileConfiguration private set
+
+val ammo = HashMap<String, Ammo>()
 
 class EFCAmmoSort : JavaPlugin() {
     override fun onEnable() {
         getCommand("ammosort")?.setExecutor(AmmoCommand)
+
+        saveDefaultConfig()
+        ammoConfig = config
+
+        config.getConfigurationSection("ammo")?.getKeys(false)?.forEachIndexed { index, str ->
+            println(str)
+            ammo[str] = Ammo(str, index, config.getInt("ammo.$str", 4))
+        }
     }
 
     override fun onDisable() {
